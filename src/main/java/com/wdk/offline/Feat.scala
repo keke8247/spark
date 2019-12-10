@@ -98,7 +98,7 @@ object Feat {
 
         //5. 每个用户平均每个订单有多少商品
         val oneOrderProds = priors.groupBy("order_id").count().withColumnRenamed("count","ord_prod_cnts");
-        val usrePerOrdProdCnt = orders.join(oneOrderProds)
+        val usrePerOrdProdCnt = orders.join(oneOrderProds,"order_id")
                                     .groupBy("user_id")
                                     .agg(avg("ord_prod_cnts").as("u_avg_ord_prods"));
         usrePerOrdProdCnt.show()
