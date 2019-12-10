@@ -117,8 +117,6 @@ object Feat {
                 approx_count_distinct("order_id").as("orderId"),
                 count("user_prod").as("ordNums"))
         userXprodInOrd.show()
-
-
     }
 
 }
