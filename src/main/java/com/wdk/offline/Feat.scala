@@ -47,17 +47,17 @@ object Feat {
           * */
 
         //对异常值处理 days_since_prior_order为""的情况 转换为0.0
-//        var ordersNew = orders.selectExpr("*","if(days_since_prior_order='',0.0,days_since_prior_order) as dspo")
-//            .drop("days_since_prior_order");//drop掉原来的列
-//        ordersNew.show();
+        var ordersNew = orders.selectExpr("*","if(days_since_prior_order='',0.0,days_since_prior_order) as dspo")
+            .drop("days_since_prior_order");//drop掉原来的列
+        ordersNew.show();
 
         //每个用户购买订单的平均day间隔  days_since orders & 总订单数 count  max(order_number)
-//        val userGap = ordersNew.selectExpr("user_id","cast(dspo as int) as dspo")
-//            .groupBy("user_id")
-//            .agg(
-//                avg("dspo").as("u_avg_day_gap"),
-//                count("user_id").as("u_ord_cnt"))
-//        userGap.show()
+        val userGap = ordersNew.selectExpr("user_id","cast(dspo as int) as dspo")
+            .groupBy("user_id")
+            .agg(
+                avg("dspo").as("u_avg_day_gap"),
+                count("user_id").as("u_ord_cnt"))
+        userGap.show()
 
         //orders 和priors 表join 需要进行shuffle  序列化后缓存到 内存或者磁盘(内存不够的情况再缓存的磁盘)
         val op = orders.join(priors,"order_id").persist(StorageLevel.MEMORY_AND_DISK_SER);
@@ -66,11 +66,11 @@ object Feat {
 
         //3. 每个用户购买的product商品去重后的集合数据  collect_set
         val up = op.selectExpr("user_id","product_id")
-//        val userUniOrdRecs = up.rdd.map(
-//                x=>(x(0).toString,x(1).toString)) //把结果集转成tuple
-//            .groupByKey() //根据key(uesr_id)分组,此时product_id是一个List
-//            .mapValues(_.toSet.mkString(",")) //把product_id的list 转成set 起到去重的作用
-//                .toDF("user_id","prod_uni_cnt")
+        val userUniOrdRecs = up.rdd.map(
+                x=>(x(0).toString,x(1).toString)) //把结果集转成tuple
+            .groupByKey() //根据key(uesr_id)分组,此时product_id是一个List
+            .mapValues(_.toSet.mkString(",")) //把product_id的list 转成set 起到去重的作用
+                .toDF("user_id","prod_uni_cnt")
 
         //合并 3 4 两个统计维度
         val userProRcdSize = up.rdd.map(
@@ -111,12 +111,12 @@ object Feat {
           * */
 
         //组合key
-//        val userXprod = op.selectExpr("concat_ws('_',user_id,product_id) as user_prod","order_number","order_id");
-//        //1:统计user和对应product在多少个订单中出现（distinct order_id）
-//        val userXprodInOrd = userXprod.groupBy("user_prod").agg(
-//                approx_count_distinct("order_id").as("orderId"),
-//                count("user_prod").as("ordNums"))
-//        userXprodInOrd.show()
+        val userXprod = op.selectExpr("concat_ws('_',user_id,product_id) as user_prod","order_number","order_id");
+        //1:统计user和对应product在多少个订单中出现（distinct order_id）
+        val userXprodInOrd = userXprod.groupBy("user_prod").agg(
+                approx_count_distinct("order_id").as("orderId"),
+                count("user_prod").as("ordNums"))
+        userXprodInOrd.show()
 
 
     }
