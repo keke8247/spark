@@ -117,6 +117,12 @@ object Feat {
                 approx_count_distinct("order_id").as("orderId"),
                 count("user_prod").as("ordNums"))
         userXprodInOrd.show()
+
+        //组合
+        val proAvgPosition = priors.groupBy("product_id").agg(avg("add_to_cart_order").as("pro_avg_position"));
+
+        var lastOrder = orders.groupBy("user_id").max("order_id").as("lastOrderId");
+        
     }
 
 }
